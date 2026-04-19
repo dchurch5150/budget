@@ -1,0 +1,10 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.placeholder {
+  color: var(--text-muted);
+  font-size: 14px;
+}
