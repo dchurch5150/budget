@@ -1,22 +1,18 @@
-# Current Feature: Dashboard UI Phase 2
+# Current Feature
+
+<!-- Feature Name -->
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Build a sortable transaction table on the Budget Tracking page with columns matching the project spec
-- Compute a running Balance column: add `Income` amounts, subtract `Expenses` and `Savings` amounts
-- Display four summary cards above the table: Today's Date, Date of Last Transaction, Number of Tracked Records, and Current Balance
-- Source transactions directly from `src/lib/mock-data.ts` (no database yet)
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Reference screenshot: `context/screenshots/budget_tracking.png` (use for layout feel; exact columns differ)
-- Reuse the existing `Transaction` model and `computeRunningBalance` helper from `src/lib/mock-data.ts`
-- Columns should be sortable (e.g., Date, Type, Category, Amount, Balance)
-- Keep dark-mode styling consistent with Phase 1 layout
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -25,3 +21,4 @@ In Progress
 - Project setup and boilerplate cleanup
 - Dashboard UI Phase 1: migrated Vite to Next.js + TypeScript, added /dashboard route with dark-mode layout and "Budget Tracking" top bar
 - Mock Data: added src/lib/mock-data.ts with typed Transaction model, 90 seeded transactions (Jan 2025 – Apr 2026), tags column, and a computeRunningBalance helper
+- Dashboard UI Phase 2: added sortable transaction table with running-balance column and four summary cards (today's date, last transaction date, record count, current balance) on /dashboard, sourcing from mock-data.ts
