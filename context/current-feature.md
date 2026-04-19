@@ -1,18 +1,23 @@
-# Current Feature
+# Current Feature: Dashboard UI Phase 1
 
 <!-- Feature Name -->
 
 ## Status
 
-<!-- Not Started|In Progress|Completed -->
+In Progress
 
 ## Goals
 
-<!-- Goals & requirements -->
+- Create dashboard route at `/dashboard`
+- Establish main dashboard layout and global styles
+- Enable dark mode by default
+- Add top bar displaying `Budget Tracking` as the title
 
 ## Notes
 
-<!-- Any extra notes -->
+- Phase 1 of the budget tracking UI layout
+- Reference screenshot: @context/screenshots/budget_tracking.png (exact columns will differ)
+- Related context: @context/project-overview.md
 
 ## History
 
