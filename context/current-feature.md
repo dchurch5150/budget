@@ -1,18 +1,22 @@
-# Current Feature
-
-<!-- Feature Name -->
+# Current Feature: Dashboard UI Phase 2
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Build a sortable transaction table on the Budget Tracking page with columns matching the project spec
+- Compute a running Balance column: add `Income` amounts, subtract `Expenses` and `Savings` amounts
+- Display four summary cards above the table: Today's Date, Date of Last Transaction, Number of Tracked Records, and Current Balance
+- Source transactions directly from `src/lib/mock-data.ts` (no database yet)
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Reference screenshot: `context/screenshots/budget_tracking.png` (use for layout feel; exact columns differ)
+- Reuse the existing `Transaction` model and `computeRunningBalance` helper from `src/lib/mock-data.ts`
+- Columns should be sortable (e.g., Date, Type, Category, Amount, Balance)
+- Keep dark-mode styling consistent with Phase 1 layout
 
 ## History
 
