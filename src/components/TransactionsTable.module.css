@@ -1,0 +1,143 @@
+.wrapper {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 10px 14px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.th {
+  background: var(--bg);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  user-select: none;
+  position: sticky;
+  top: 0;
+}
+
+.thButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
+
+.thButton:hover {
+  color: var(--text);
+}
+
+.thActive {
+  color: var(--text);
+}
+
+.sortIcon {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.sortIconInactive {
+  opacity: 0.25;
+}
+
+.amountCell,
+.balanceCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.amountIncome {
+  color: #4ade80;
+}
+
+.amountOutflow {
+  color: var(--text);
+}
+
+.balanceNegative {
+  color: #f87171;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 240px;
+  white-space: normal;
+}
+
+.tag {
+  background: rgba(79, 140, 255, 0.12);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.typeBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.typeIncome {
+  background: rgba(74, 222, 128, 0.14);
+  color: #4ade80;
+}
+
+.typeExpenses {
+  background: rgba(248, 113, 113, 0.14);
+  color: #f87171;
+}
+
+.typeSavings {
+  background: rgba(79, 140, 255, 0.14);
+  color: var(--accent);
+}
+
+.details {
+  color: var(--text-muted);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
