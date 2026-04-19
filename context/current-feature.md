@@ -1,26 +1,22 @@
-# Current Feature: Dashboard UI Phase 1
+# Current Feature
 
 <!-- Feature Name -->
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Create dashboard route at `/dashboard`
-- Establish main dashboard layout and global styles
-- Enable dark mode by default
-- Add top bar displaying `Budget Tracking` as the title
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Phase 1 of the budget tracking UI layout
-- Reference screenshot: @context/screenshots/budget_tracking.png (exact columns will differ)
-- Related context: @context/project-overview.md
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
 <!-- Keep this updated. Earliest to latest -->
 
 - Project setup and boilerplate cleanup
+- Dashboard UI Phase 1: migrated Vite to Next.js + TypeScript, added /dashboard route with dark-mode layout and "Budget Tracking" top bar
