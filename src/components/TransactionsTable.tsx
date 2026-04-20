@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { Transaction, TransactionType } from '@/lib/mock-data';
+import type { Transaction, TransactionType } from '@/lib/types';
 import styles from './TransactionsTable.module.css';
 
 export type TransactionWithBalance = Transaction & { balance: number };

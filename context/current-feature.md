@@ -1,18 +1,26 @@
-# Current Feature
-
-<!-- Feature Name -->
+# Current Feature: Database-Backed Dashboard
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Replace mock-data.ts as the data source for the dashboard with live reads from the `budget_development` Postgres database
+- Fetch transactions scoped to user id `1` (hardcoded placeholder until auth is implemented)
+- Preserve existing dashboard behavior: sortable transaction table, running-balance column, and the four summary cards
+- Keep `Transaction` typing consistent with the DB schema (type/category enums, NUMERIC amount, TEXT[] tags)
+- Seed the database with sample transactions so the dashboard has data to render
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Assume user id `1` for all queries; no auth yet
+- Use server components / server-side data fetching (per coding-standards.md: "Server components by default")
+- Need a Postgres client wired into the Next.js app (e.g. `pg` / `postgres` driver) with connection config via env vars
+- `computeRunningBalance` helper can stay if it still applies; relocate if needed so it's not tied to mock data
+- After migration, `src/lib/mock-data.ts` should either be removed or clearly marked as unused
+- A `db/seed.sql` file already exists (untracked) and can be used to populate sample data
+- DB DDL reference: `db/schema.sql`
 
 ## History
 
