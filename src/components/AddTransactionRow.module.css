@@ -1,0 +1,133 @@
+.row td {
+  background: rgba(79, 140, 255, 0.05);
+  vertical-align: middle;
+}
+
+.input {
+  width: 100%;
+  min-width: 90px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.inputAmount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.balanceReadonly {
+  color: var(--text-muted);
+}
+
+.tagsField {
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.tagChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  min-height: 30px;
+}
+
+.tagChips:focus-within {
+  border-color: var(--accent);
+}
+
+.tagRemove {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 0 0 4px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.tagRemove:hover {
+  opacity: 1;
+}
+
+.tagInput {
+  flex: 1;
+  min-width: 60px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 2px 0;
+}
+
+.tagInput:focus {
+  outline: none;
+}
+
+.sourceCell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnConfirm {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0b1220;
+}
+
+.btnConfirm:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btnCancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.errorRow td {
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.errorCell {
+  color: #f87171;
+  font-size: 12px;
+  padding: 6px 14px;
+}

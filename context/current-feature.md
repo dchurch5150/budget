@@ -1,18 +1,28 @@
-# Current Feature
-
-<!-- Feature Name -->
+# Current Feature: UI Add Transaction
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Add an "Add Transaction" button near the top of the dashboard transaction table that inserts a new blank editable row at the top
+- Blank row has inline inputs for each editable field (Date, Type, Category, Amount, Tags, Details, Source) plus Confirm and Cancel buttons at the end of the row
+- Cancel removes the temp row from the UI with no database write; Confirm persists the transaction to Postgres and refreshes the table
+- On confirm, auto-populate `user` (current user placeholder: id 1) and `id` (computed as `date-source-amount` concatenated with no spaces or punctuation)
+- Restrict Type input to the three database-defined transaction types, with auto-complete
+- Restrict Category input to database-defined categories, with auto-complete
+- Support multi-select tags that can pick from existing tags or create new ones
+- Keep the Balance column read-only (it is auto-calculated by the running-balance helper)
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Spec: @context/features/ui-add-transaction-spec.md
+- Transaction types/categories are Postgres ENUMs in `db/schema.sql` — source the UI options from there (constants derived from the schema or a query) rather than hardcoding duplicates
+- Existing tag set should be derived from distinct tags across the current user's transactions
+- Needs a Server Action (or API route) to insert the transaction; server component page currently reads via `getTransactionsForUser` — inserting will require invalidating the route after mutation
+- User id is still the hardcoded placeholder (1) until auth exists
+- Amount is `NUMERIC(12,2)`; id string must be deterministic — decide formatting for date (likely ISO `YYYY-MM-DD` stripped of dashes) and amount (strip decimal point) when composing the id
 
 ## History
 
