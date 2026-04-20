@@ -1,0 +1,124 @@
+-- Budget app seed data (budget_development)
+-- Re-initializes the database: clears users + transactions, inserts a demo
+-- user, and loads the 90 mock transactions from src/lib/mock-data.ts.
+-- Apply via psdev-mcp or psql.
+
+BEGIN;
+
+TRUNCATE TABLE transactions, users RESTART IDENTITY CASCADE;
+
+WITH demo AS (
+  INSERT INTO users (username, email, first_name, last_name)
+  VALUES ('demo', 'demo@example.com', 'Demo', 'User')
+  RETURNING id
+)
+INSERT INTO transactions (id, "user", date, type, category, amount, tags, details, source)
+SELECT
+  v.id,
+  demo.id,
+  v.date,
+  v.type::transaction_type,
+  v.category::transaction_category,
+  v.amount,
+  v.tags,
+  v.details,
+  v.source
+FROM demo, (VALUES
+  ('t-0001', DATE '2025-01-01', 'Expenses', 'Groceries',          85,    ARRAY['Safeway','Weekly'],            '',                              'Chase Credit'),
+  ('t-0002', DATE '2025-01-01', 'Expenses', 'Groceries',          32,    ARRAY['Chewy','Pet'],                 'Dog Food',                      'Chase Credit'),
+  ('t-0003', DATE '2025-01-01', 'Expenses', 'Utilities',          0,     ARRAY['Subscription','Monthly'],      'Google Cloud',                  'Amex'),
+  ('t-0004', DATE '2025-01-02', 'Income',   'Employment (Net)',   4376,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0005', DATE '2025-01-02', 'Savings',  'Brokerage Account',  2000,  ARRAY['Stock Portfolio','Auto-Invest'],'',                             'Fidelity Brokerage'),
+  ('t-0006', DATE '2025-01-02', 'Expenses', 'Housing',            1000,  ARRAY['Property Tax','Escrow'],       'Saved aside for property tax',  'Wells Fargo Checking'),
+  ('t-0007', DATE '2025-01-02', 'Savings',  'Emergency Fund',     300,   ARRAY['Monthly','Auto'],              '',                              'Ally Savings'),
+  ('t-0008', DATE '2025-01-02', 'Savings',  'Sinking Fund',       300,   ARRAY['Gold Fund','Hedge'],           'Gold Fund',                     'Ally Savings'),
+  ('t-0009', DATE '2025-01-02', 'Savings',  'Crypto',             300,   ARRAY['DCA','Bitcoin'],               '',                              'Coinbase'),
+  ('t-0010', DATE '2025-01-02', 'Savings',  'Retirement Account', 250,   ARRAY['IRA','Monthly'],               '',                              'Fidelity IRA'),
+  ('t-0011', DATE '2025-01-03', 'Income',   'Dividends',          126,   ARRAY['WFC','Bank'],                  'Wells Fargo Rewards',           'Fidelity Brokerage'),
+  ('t-0012', DATE '2025-01-04', 'Expenses', 'Groceries',          310,   ARRAY['Costco','Bulk'],               '',                              'Costco Visa'),
+  ('t-0013', DATE '2025-01-06', 'Expenses', 'Fun & Vacation',     86,    ARRAY['Hobby','Cards'],               'Ebay TCG',                      'Amex'),
+  ('t-0014', DATE '2025-01-06', 'Expenses', 'Media',              80,    ARRAY['Amazon','Books'],              'Kindle Books',                  'Amex'),
+  ('t-0015', DATE '2025-01-06', 'Expenses', 'Fun & Vacation',     11,    ARRAY['Gaming','Subscription'],       'Pokemon Home',                  'Amex'),
+  ('t-0016', DATE '2025-01-07', 'Expenses', 'Media',              14,    ARRAY['Subscription','Monthly'],      'Youtube Premium',               'Amex'),
+  ('t-0017', DATE '2025-01-07', 'Expenses', 'Media',              8,     ARRAY['Amazon','Books'],              'Kindle Books',                  'Amex'),
+  ('t-0018', DATE '2025-01-09', 'Income',   'Dividends',          389,   ARRAY['VICI','REIT'],                 'VICI',                          'Fidelity Brokerage'),
+  ('t-0019', DATE '2025-01-09', 'Savings',  'Brokerage Account',  389,   ARRAY['DRIP','VICI'],                 'Reinvest Dividend',             'Fidelity Brokerage'),
+  ('t-0020', DATE '2025-01-09', 'Income',   'Dividends',          2,     ARRAY['CRM','Stock'],                 'CRM',                           'Fidelity Brokerage'),
+  ('t-0021', DATE '2025-01-09', 'Savings',  'Brokerage Account',  2,     ARRAY['DRIP','CRM'],                  'Reinvest Dividend',             'Fidelity Brokerage'),
+  ('t-0022', DATE '2025-01-10', 'Expenses', 'Home Office',        85,    ARRAY['Supplies'],                    'Office',                        'Amex'),
+  ('t-0023', DATE '2025-01-11', 'Expenses', 'Groceries',          328,   ARRAY['Trader Joes','Weekly'],        '',                              'Chase Credit'),
+  ('t-0024', DATE '2025-01-12', 'Expenses', 'Fun & Vacation',     1010,  ARRAY['Hobby','Cards'],               'Ebay TCG',                      'Amex'),
+  ('t-0025', DATE '2025-01-12', 'Expenses', 'Groceries',          85,    ARRAY['Takeout','Pizza'],             'Dominos',                       'Chase Credit'),
+  ('t-0026', DATE '2025-01-14', 'Expenses', 'Media',              12,    ARRAY['Subscription','Finance'],      'TickerData',                    'Amex'),
+  ('t-0027', DATE '2025-01-15', 'Income',   'Employment (Net)',   4387,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0028', DATE '2025-01-15', 'Savings',  'Brokerage Account',  2000,  ARRAY['Stock Portfolio','Auto-Invest'],'',                             'Fidelity Brokerage'),
+  ('t-0029', DATE '2025-01-15', 'Savings',  'Emergency Fund',     300,   ARRAY['Monthly','Auto'],              '',                              'Ally Savings'),
+  ('t-0030', DATE '2025-01-15', 'Savings',  'Crypto',             300,   ARRAY['DCA','Bitcoin'],               '',                              'Coinbase'),
+  ('t-0031', DATE '2025-01-15', 'Savings',  'Retirement Account', 250,   ARRAY['IRA','Monthly'],               '',                              'Fidelity IRA'),
+  ('t-0032', DATE '2025-01-15', 'Income',   'Dividends',          232,   ARRAY['O','REIT'],                    'O',                             'Fidelity Brokerage'),
+  ('t-0033', DATE '2025-01-15', 'Savings',  'Brokerage Account',  232,   ARRAY['DRIP','O'],                    'Reinvest Dividend',             'Fidelity Brokerage'),
+  ('t-0034', DATE '2025-01-15', 'Expenses', 'Home Office',        38,    ARRAY['Supplies'],                    'Office',                        'Amex'),
+  ('t-0035', DATE '2025-01-18', 'Expenses', 'Groceries',          142,   ARRAY['Safeway','Weekly'],            '',                              'Chase Credit'),
+  ('t-0036', DATE '2025-01-20', 'Expenses', 'Transportation',     58,    ARRAY['Gas','Shell'],                 'Fill-up',                       'Chase Credit'),
+  ('t-0037', DATE '2025-01-22', 'Expenses', 'Utilities',          142,   ARRAY['PG&E','Electric'],             'Electric bill',                 'Wells Fargo Checking'),
+  ('t-0038', DATE '2025-01-25', 'Expenses', 'Groceries',          95,    ARRAY['Safeway','Weekly'],            '',                              'Chase Credit'),
+  ('t-0039', DATE '2025-01-28', 'Expenses', 'Insurance',          210,   ARRAY['Pet','Monthly'],               'Pet insurance',                 'Wells Fargo Checking'),
+  ('t-0040', DATE '2025-01-29', 'Income',   'Employment (Net)',   4380,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+
+  ('t-0041', DATE '2025-02-01', 'Expenses', 'Housing',            2450,  ARRAY['Mortgage','Monthly'],          'February mortgage',             'Wells Fargo Checking'),
+  ('t-0042', DATE '2025-02-02', 'Savings',  'Emergency Fund',     300,   ARRAY['Monthly','Auto'],              '',                              'Ally Savings'),
+  ('t-0043', DATE '2025-02-02', 'Savings',  'Sinking Fund',       300,   ARRAY['Gold Fund','Hedge'],           'Gold Fund',                     'Ally Savings'),
+  ('t-0044', DATE '2025-02-02', 'Savings',  'Crypto',             300,   ARRAY['DCA','Bitcoin'],               '',                              'Coinbase'),
+  ('t-0045', DATE '2025-02-02', 'Savings',  'Retirement Account', 250,   ARRAY['IRA','Monthly'],               '',                              'Fidelity IRA'),
+  ('t-0046', DATE '2025-02-05', 'Expenses', 'Groceries',          178,   ARRAY['Costco','Bulk'],               '',                              'Costco Visa'),
+  ('t-0047', DATE '2025-02-07', 'Expenses', 'Media',              14,    ARRAY['Subscription','Monthly'],      'Youtube Premium',               'Amex'),
+  ('t-0048', DATE '2025-02-10', 'Income',   'Dividends',          412,   ARRAY['VICI','REIT'],                 'VICI',                          'Fidelity Brokerage'),
+  ('t-0049', DATE '2025-02-10', 'Savings',  'Brokerage Account',  412,   ARRAY['DRIP','VICI'],                 'Reinvest Dividend',             'Fidelity Brokerage'),
+  ('t-0050', DATE '2025-02-12', 'Income',   'Employment (Net)',   4390,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0051', DATE '2025-02-14', 'Expenses', 'Fun & Vacation',     165,   ARRAY['Dinner','Valentines'],         'Anniversary dinner',            'Amex'),
+  ('t-0052', DATE '2025-02-15', 'Expenses', 'Gifts',              75,    ARRAY['Valentines','Flowers'],        'Flowers',                       'Amex'),
+  ('t-0053', DATE '2025-02-18', 'Expenses', 'Utilities',          68,    ARRAY['Internet','Comcast'],          'Internet bill',                 'Wells Fargo Checking'),
+  ('t-0054', DATE '2025-02-20', 'Expenses', 'Transportation',     62,    ARRAY['Gas','Shell'],                 'Fill-up',                       'Chase Credit'),
+  ('t-0055', DATE '2025-02-22', 'Income',   'Interest',           18,    ARRAY['Ally','HYSA'],                 'Savings interest',              'Ally Savings'),
+  ('t-0056', DATE '2025-02-26', 'Income',   'Employment (Net)',   4390,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0057', DATE '2025-02-28', 'Expenses', 'Medical',            45,    ARRAY['Copay','Doctor'],              'Annual physical copay',         'Chase Credit'),
+
+  ('t-0058', DATE '2025-03-01', 'Expenses', 'Housing',            2450,  ARRAY['Mortgage','Monthly'],          'March mortgage',                'Wells Fargo Checking'),
+  ('t-0059', DATE '2025-03-02', 'Savings',  'Emergency Fund',     300,   ARRAY['Monthly','Auto'],              '',                              'Ally Savings'),
+  ('t-0060', DATE '2025-03-02', 'Savings',  'Retirement Account', 250,   ARRAY['IRA','Monthly'],               '',                              'Fidelity IRA'),
+  ('t-0061', DATE '2025-03-02', 'Savings',  'Crypto',             300,   ARRAY['DCA','Ethereum'],              '',                              'Coinbase'),
+  ('t-0062', DATE '2025-03-05', 'Expenses', 'Groceries',          218,   ARRAY['Trader Joes','Weekly'],        '',                              'Chase Credit'),
+  ('t-0063', DATE '2025-03-07', 'Income',   'Side Hustle',        450,   ARRAY['Freelance','Consulting'],      'Consulting hours',              'Wells Fargo Checking'),
+  ('t-0064', DATE '2025-03-10', 'Income',   'Options Premium',    220,   ARRAY['Covered Call','SPY'],          'SPY CC premium',                'Fidelity Brokerage'),
+  ('t-0065', DATE '2025-03-12', 'Income',   'Employment (Net)',   4395,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0066', DATE '2025-03-14', 'Expenses', 'Fun & Vacation',     340,   ARRAY['Concert','Entertainment'],     'Concert tickets',               'Amex'),
+  ('t-0067', DATE '2025-03-18', 'Expenses', 'Clothing',           185,   ARRAY['Shoes','Nike'],                'Running shoes',                 'Amex'),
+  ('t-0068', DATE '2025-03-20', 'Expenses', 'Charity',            100,   ARRAY['Monthly','Red Cross'],         'Monthly donation',              'Wells Fargo Checking'),
+  ('t-0069', DATE '2025-03-22', 'Expenses', 'Transportation',     55,    ARRAY['Gas','Shell'],                 'Fill-up',                       'Chase Credit'),
+  ('t-0070', DATE '2025-03-26', 'Income',   'Employment (Net)',   4395,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0071', DATE '2025-03-29', 'Expenses', 'Groceries',          112,   ARRAY['Safeway','Weekly'],            '',                              'Chase Credit'),
+
+  ('t-0072', DATE '2025-04-01', 'Expenses', 'Housing',            2450,  ARRAY['Mortgage','Monthly'],          'April mortgage',                'Wells Fargo Checking'),
+  ('t-0073', DATE '2025-04-02', 'Savings',  'Emergency Fund',     300,   ARRAY['Monthly','Auto'],              '',                              'Ally Savings'),
+  ('t-0074', DATE '2025-04-02', 'Savings',  'Retirement Account', 250,   ARRAY['IRA','Monthly'],               '',                              'Fidelity IRA'),
+  ('t-0075', DATE '2025-04-09', 'Income',   'Employment (Net)',   4400,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0076', DATE '2025-04-14', 'Expenses', 'Taxes',              1250,  ARRAY['Federal','Annual'],            'Federal tax owed',              'Wells Fargo Checking'),
+  ('t-0077', DATE '2025-04-18', 'Expenses', 'Groceries',          88,    ARRAY['Safeway','Weekly'],            '',                              'Chase Credit'),
+  ('t-0078', DATE '2025-04-23', 'Income',   'Employment (Net)',   4400,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0079', DATE '2025-04-28', 'Expenses', 'Medical',            120,   ARRAY['Dental','Cleaning'],           'Dental cleaning',               'Chase Credit'),
+
+  ('t-0080', DATE '2025-07-15', 'Income',   'Side Hustle',        680,   ARRAY['Freelance','Consulting'],      'Summer project',                'Wells Fargo Checking'),
+  ('t-0081', DATE '2025-08-20', 'Expenses', 'Fun & Vacation',     1820,  ARRAY['Trip','Hawaii'],               'Hawaii flights',                'Amex'),
+  ('t-0082', DATE '2025-10-05', 'Expenses', 'Margin',             62,    ARRAY['Interest','IBKR'],             'Margin interest',               'Fidelity Brokerage'),
+  ('t-0083', DATE '2025-11-28', 'Expenses', 'Gifts',              420,   ARRAY['Christmas','Family'],          'Holiday gifts',                 'Amex'),
+  ('t-0084', DATE '2025-12-15', 'Income',   'Dividends',          518,   ARRAY['VICI','REIT'],                 'Year-end dividend',             'Fidelity Brokerage'),
+  ('t-0085', DATE '2025-12-31', 'Savings',  'Physical Emergency', 200,   ARRAY['Cash','Annual'],               'Year-end cash top-up',          'Home Safe'),
+
+  ('t-0086', DATE '2026-01-02', 'Income',   'Employment (Net)',   4500,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0087', DATE '2026-01-05', 'Expenses', 'Housing',            2500,  ARRAY['Mortgage','Monthly'],          'January mortgage',              'Wells Fargo Checking'),
+  ('t-0088', DATE '2026-02-10', 'Income',   'Dividends',          445,   ARRAY['O','REIT'],                    'O',                             'Fidelity Brokerage'),
+  ('t-0089', DATE '2026-03-15', 'Income',   'Employment (Net)',   4500,  ARRAY['Paycheck','Biweekly'],         'UCSF Paycheck',                 'Wells Fargo Checking'),
+  ('t-0090', DATE '2026-04-02', 'Expenses', 'Groceries',          96,    ARRAY['Safeway','Weekly'],            '',                              'Chase Credit')
+) AS v(id, date, type, category, amount, tags, details, source);
+
+COMMIT;

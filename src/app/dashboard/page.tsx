@@ -1,13 +1,16 @@
 import { SummaryCards } from '@/components/SummaryCards';
 import { TransactionsTable } from '@/components/TransactionsTable';
-import { computeRunningBalance, mockTransactions } from '@/lib/mock-data';
+import { getTransactionsForUser } from '@/lib/transactions';
+import { computeRunningBalance } from '@/lib/types';
 import styles from './page.module.css';
 
-export default function DashboardPage() {
-  const chronological = [...mockTransactions].sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
-  const rows = computeRunningBalance(chronological);
+const CURRENT_USER_ID = 1;
+
+export const dynamic = 'force-dynamic';
+
+export default async function DashboardPage() {
+  const transactions = await getTransactionsForUser(CURRENT_USER_ID);
+  const rows = computeRunningBalance(transactions);
   const lastRow = rows[rows.length - 1];
   const today = new Date();
 
