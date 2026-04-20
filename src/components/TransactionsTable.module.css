@@ -5,6 +5,35 @@
   overflow: hidden;
 }
 
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.addButton {
+  background: var(--accent);
+  color: #0b1220;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addButton:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.addButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .scroll {
   overflow-x: auto;
 }

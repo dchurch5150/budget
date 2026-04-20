@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import type { Transaction, TransactionType } from '@/lib/types';
+import type { CreateTransactionResult } from '@/app/dashboard/actions';
+import { AddTransactionRow } from './AddTransactionRow';
 import styles from './TransactionsTable.module.css';
 
 export type TransactionWithBalance = Transaction & { balance: number };
@@ -28,11 +30,22 @@ const COLUMNS: Column[] = [
 
 interface TransactionsTableProps {
   rows: TransactionWithBalance[];
+  existingTags: string[];
+  onCreate: (input: {
+    date: string;
+    type: string;
+    category: string;
+    amount: number;
+    tags: string[];
+    details: string;
+    source: string;
+  }) => Promise<CreateTransactionResult>;
 }
 
-export function TransactionsTable({ rows }: TransactionsTableProps) {
+export function TransactionsTable({ rows, existingTags, onCreate }: TransactionsTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [isAdding, setIsAdding] = useState(false);
 
   const sorted = useMemo(() => {
     const copy = [...rows];
@@ -52,6 +65,16 @@ export function TransactionsTable({ rows }: TransactionsTableProps) {
 
   return (
     <div className={styles.wrapper}>
+      <div className={styles.toolbar}>
+        <button
+          type="button"
+          className={styles.addButton}
+          onClick={() => setIsAdding(true)}
+          disabled={isAdding}
+        >
+          + Add Transaction
+        </button>
+      </div>
       <div className={styles.scroll}>
         <table className={styles.table}>
           <thead>
@@ -94,6 +117,14 @@ export function TransactionsTable({ rows }: TransactionsTableProps) {
             </tr>
           </thead>
           <tbody>
+            {isAdding ? (
+              <AddTransactionRow
+                existingTags={existingTags}
+                onCancel={() => setIsAdding(false)}
+                onCreate={onCreate}
+                onSuccess={() => setIsAdding(false)}
+              />
+            ) : null}
             {sorted.map((row) => (
               <tr key={row.id}>
                 <td>{row.date}</td>

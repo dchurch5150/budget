@@ -34,6 +34,47 @@ export async function getTransactionsForUser(userId: number): Promise<Transactio
   }));
 }
 
+export async function getDistinctTagsForUser(userId: number): Promise<string[]> {
+  const result = await getPool().query<{ tag: string }>(
+    `SELECT DISTINCT UNNEST(tags) AS tag
+       FROM transactions
+      WHERE "user" = $1
+      ORDER BY tag ASC`,
+    [userId],
+  );
+  return result.rows.map((row) => row.tag).filter((tag) => tag.length > 0);
+}
+
+export interface InsertTransactionInput {
+  id: string;
+  userId: number;
+  date: string;
+  type: TransactionType;
+  category: Category;
+  amount: number;
+  tags: string[];
+  details: string;
+  source: string;
+}
+
+export async function insertTransaction(input: InsertTransactionInput): Promise<void> {
+  await getPool().query(
+    `INSERT INTO transactions (id, "user", date, type, category, amount, tags, details, source)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      input.id,
+      input.userId,
+      input.date,
+      input.type,
+      input.category,
+      input.amount,
+      input.tags,
+      input.details,
+      input.source,
+    ],
+  );
+}
+
 function formatDate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
