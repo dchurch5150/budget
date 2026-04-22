@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { insertTransaction } from '@/lib/transactions';
+import { deleteTransaction, insertTransaction } from '@/lib/transactions';
 import {
   computeTransactionId,
   isCategory,
@@ -57,6 +57,29 @@ export async function createTransactionAction(
 
   revalidatePath('/dashboard');
   return { ok: true, id };
+}
+
+export type DeleteTransactionResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export async function deleteTransactionAction(id: string): Promise<DeleteTransactionResult> {
+  const trimmed = typeof id === 'string' ? id.trim() : '';
+  if (!trimmed) {
+    return { ok: false, error: 'Transaction id is required.' };
+  }
+
+  try {
+    const deleted = await deleteTransaction(trimmed, CURRENT_USER_ID);
+    if (!deleted) {
+      return { ok: false, error: 'Transaction not found.' };
+    }
+  } catch {
+    return { ok: false, error: 'Failed to delete transaction. Please try again.' };
+  }
+
+  revalidatePath('/dashboard');
+  return { ok: true };
 }
 
 type Validated =
