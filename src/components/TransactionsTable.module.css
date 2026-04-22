@@ -306,3 +306,13 @@
 .modalBtnDelete:hover:not(:disabled) {
   filter: brightness(1.05);
 }
+
+.modalBtnConfirm {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0b1220;
+}
+
+.modalBtnConfirm:hover:not(:disabled) {
+  filter: brightness(1.1);
+}

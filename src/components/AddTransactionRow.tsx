@@ -1,11 +1,9 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import {
-  ALL_CATEGORIES,
-  CATEGORIES_BY_TYPE,
   TRANSACTION_TYPES,
-  isCategory,
   isTransactionType,
   type Category,
   type TransactionType,
@@ -16,6 +14,7 @@ import tableStyles from './TransactionsTable.module.css';
 
 interface AddTransactionRowProps {
   existingTags: string[];
+  categories: Category[];
   onCancel: () => void;
   onCreate: (input: {
     date: string;
@@ -31,6 +30,7 @@ interface AddTransactionRowProps {
 
 export function AddTransactionRow({
   existingTags,
+  categories,
   onCancel,
   onCreate,
   onSuccess,
@@ -44,16 +44,19 @@ export function AddTransactionRow({
   const [details, setDetails] = useState('');
   const [source, setSource] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [pendingNewCategory, setPendingNewCategory] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const typeListId = 'add-txn-type-list';
   const categoryListId = 'add-txn-category-list';
   const tagListId = 'add-txn-tag-list';
 
-  const availableCategories = useMemo<readonly Category[]>(() => {
-    if (isTransactionType(type)) return CATEGORIES_BY_TYPE[type as TransactionType];
-    return ALL_CATEGORIES;
-  }, [type]);
+  const typeIsSelected = isTransactionType(type);
+
+  const availableCategories = useMemo<Category[]>(() => {
+    if (!typeIsSelected) return [];
+    return categories.filter((c) => c.type === (type as TransactionType));
+  }, [categories, type, typeIsSelected]);
 
   const tagSuggestions = useMemo(
     () => existingTags.filter((t) => !tags.includes(t)),
@@ -62,9 +65,25 @@ export function AddTransactionRow({
 
   function handleTypeChange(next: string) {
     setType(next);
-    if (category && !CATEGORIES_BY_TYPE[next as TransactionType]?.includes(category as Category)) {
-      setCategory('');
-    }
+    setCategory('');
+    setPendingNewCategory(null);
+  }
+
+  function handleCategoryBlur() {
+    const trimmed = category.trim();
+    if (!trimmed) return;
+    if (!typeIsSelected) return;
+    if (categories.some((c) => c.name === trimmed)) return;
+    setPendingNewCategory(trimmed);
+  }
+
+  function confirmNewCategory() {
+    setPendingNewCategory(null);
+  }
+
+  function cancelNewCategory() {
+    setCategory('');
+    setPendingNewCategory(null);
   }
 
   function addTag(raw: string) {
@@ -91,8 +110,13 @@ export function AddTransactionRow({
 
   function validateLocal(): string | null {
     if (!date) return 'Date is required.';
-    if (!isTransactionType(type)) return 'Pick a Type.';
-    if (!isCategory(category)) return 'Pick a Category.';
+    if (!typeIsSelected) return 'Pick a Type.';
+    const trimmedCategory = category.trim();
+    if (!trimmedCategory) return 'Pick or enter a Category.';
+    const existing = categories.find((c) => c.name === trimmedCategory);
+    if (existing && existing.type !== type) {
+      return `Category "${trimmedCategory}" is for ${existing.type}, not ${type}.`;
+    }
     const amt = Number(amount);
     if (!Number.isFinite(amt) || amt <= 0) return 'Amount must be a positive number.';
     if (!source.trim()) return 'Source is required.';
@@ -111,7 +135,7 @@ export function AddTransactionRow({
       const result = await onCreate({
         date,
         type,
-        category,
+        category: category.trim(),
         amount: Number(amount),
         tags: pendingTags,
         details,
@@ -159,13 +183,15 @@ export function AddTransactionRow({
             list={categoryListId}
             className={styles.input}
             value={category}
-            placeholder="Category"
+            placeholder={typeIsSelected ? 'Category' : 'Select Type first'}
             onChange={(e) => setCategory(e.target.value)}
+            onBlur={handleCategoryBlur}
+            disabled={!typeIsSelected}
             aria-label="Category"
           />
           <datalist id={categoryListId}>
             {availableCategories.map((c) => (
-              <option key={c} value={c} />
+              <option key={c.name} value={c.name} />
             ))}
           </datalist>
         </td>
@@ -277,6 +303,47 @@ export function AddTransactionRow({
           </td>
         </tr>
       ) : null}
+      {pendingNewCategory && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              className={tableStyles.modalOverlay}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="new-category-modal-title"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) cancelNewCategory();
+              }}
+            >
+              <div className={tableStyles.modal}>
+                <h2 id="new-category-modal-title" className={tableStyles.modalTitle}>
+                  Create new category?
+                </h2>
+                <p className={tableStyles.modalBody}>
+                  <strong>{pendingNewCategory}</strong> isn&apos;t an existing
+                  category. Add it as a new <strong>{type}</strong> category?
+                </p>
+                <div className={tableStyles.modalActions}>
+                  <button
+                    type="button"
+                    className={`${tableStyles.modalBtn} ${tableStyles.modalBtnCancel}`}
+                    onClick={cancelNewCategory}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={`${tableStyles.modalBtn} ${tableStyles.modalBtnConfirm}`}
+                    onClick={confirmNewCategory}
+                    autoFocus
+                  >
+                    Add Category
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

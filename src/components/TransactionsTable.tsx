@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import type { Transaction, TransactionType } from '@/lib/types';
+import type { Category, Transaction, TransactionType } from '@/lib/types';
 import type {
   CreateTransactionResult,
   DeleteTransactionResult,
@@ -36,6 +36,7 @@ const COLUMNS: Column[] = [
 interface TransactionsTableProps {
   rows: TransactionWithBalance[];
   existingTags: string[];
+  categories: Category[];
   onCreate: (input: {
     date: string;
     type: string;
@@ -51,6 +52,7 @@ interface TransactionsTableProps {
 export function TransactionsTable({
   rows,
   existingTags,
+  categories,
   onCreate,
   onDelete,
 }: TransactionsTableProps) {
@@ -162,6 +164,7 @@ export function TransactionsTable({
             {isAdding ? (
               <AddTransactionRow
                 existingTags={existingTags}
+                categories={categories}
                 onCancel={() => setIsAdding(false)}
                 onCreate={onCreate}
                 onSuccess={() => setIsAdding(false)}

@@ -1,5 +1,6 @@
 import { SummaryCards } from '@/components/SummaryCards';
 import { TransactionsTable } from '@/components/TransactionsTable';
+import { getCategories } from '@/lib/categories';
 import { getDistinctTagsForUser, getTransactionsForUser } from '@/lib/transactions';
 import { computeRunningBalance } from '@/lib/types';
 import { createTransactionAction, deleteTransactionAction } from './actions';
@@ -10,9 +11,10 @@ const CURRENT_USER_ID = 1;
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  const [transactions, existingTags] = await Promise.all([
+  const [transactions, existingTags, categories] = await Promise.all([
     getTransactionsForUser(CURRENT_USER_ID),
     getDistinctTagsForUser(CURRENT_USER_ID),
+    getCategories(),
   ]);
   const rows = computeRunningBalance(transactions);
   const lastRow = rows[rows.length - 1];
@@ -29,6 +31,7 @@ export default async function DashboardPage() {
       <TransactionsTable
         rows={rows}
         existingTags={existingTags}
+        categories={categories}
         onCreate={createTransactionAction}
         onDelete={deleteTransactionAction}
       />

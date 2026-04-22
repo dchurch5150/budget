@@ -1,12 +1,12 @@
 import 'server-only';
 import { getPool } from './db';
-import type { Category, Transaction, TransactionType } from './types';
+import type { Transaction, TransactionType } from './types';
 
 interface TransactionRow {
   id: string;
   date: Date;
   type: TransactionType;
-  category: Category;
+  category: string;
   amount: string;
   tags: string[];
   details: string;
@@ -50,7 +50,7 @@ export interface InsertTransactionInput {
   userId: number;
   date: string;
   type: TransactionType;
-  category: Category;
+  category: string;
   amount: number;
   tags: string[];
   details: string;
