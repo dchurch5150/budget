@@ -1,12 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getCategoryByName, insertCategory } from '@/lib/categories';
 import { deleteTransaction, insertTransaction } from '@/lib/transactions';
 import {
   computeTransactionId,
-  isCategory,
   isTransactionType,
-  type Category,
   type TransactionType,
 } from '@/lib/types';
 
@@ -33,6 +32,23 @@ export async function createTransactionAction(
   if (!validation.ok) return validation;
 
   const { date, type, category, amount, tags, details, source } = validation;
+
+  const existing = await getCategoryByName(category);
+  if (existing) {
+    if (existing.type !== type) {
+      return {
+        ok: false,
+        error: `Category "${category}" is for ${existing.type}, not ${type}.`,
+      };
+    }
+  } else {
+    try {
+      await insertCategory(category, type);
+    } catch {
+      return { ok: false, error: 'Failed to create category. Please try again.' };
+    }
+  }
+
   const id = computeTransactionId(date, source, amount);
 
   try {
@@ -87,7 +103,7 @@ type Validated =
       ok: true;
       date: string;
       type: TransactionType;
-      category: Category;
+      category: string;
       amount: number;
       tags: string[];
       details: string;
@@ -107,8 +123,8 @@ function validate(input: CreateTransactionInput): Validated {
   }
 
   const category = input.category?.trim() ?? '';
-  if (!isCategory(category)) {
-    return { ok: false, error: 'Category is not recognized.' };
+  if (category.length === 0) {
+    return { ok: false, error: 'Category is required.' };
   }
 
   const amount = Number(input.amount);

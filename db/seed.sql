@@ -1,11 +1,38 @@
 -- Budget app seed data (budget_development)
--- Re-initializes the database: clears users + transactions, inserts a demo
--- user, and loads the 90 mock transactions from src/lib/mock-data.ts.
+-- Re-initializes the database: clears users + transactions + categories,
+-- inserts the default category set, a demo user, and the 90 mock transactions.
 -- Apply via psdev-mcp or psql.
 
 BEGIN;
 
-TRUNCATE TABLE transactions, users RESTART IDENTITY CASCADE;
+TRUNCATE TABLE transactions, categories, users RESTART IDENTITY CASCADE;
+
+INSERT INTO categories (name, type) VALUES
+  ('Employment (Net)',   'Income'),
+  ('Side Hustle',        'Income'),
+  ('Dividends',          'Income'),
+  ('Interest',           'Income'),
+  ('Options Premium',    'Income'),
+  ('Housing',            'Expenses'),
+  ('Utilities',          'Expenses'),
+  ('Groceries',          'Expenses'),
+  ('Transportation',     'Expenses'),
+  ('Insurance',          'Expenses'),
+  ('Clothing',           'Expenses'),
+  ('Medical',            'Expenses'),
+  ('Media',              'Expenses'),
+  ('Fun & Vacation',     'Expenses'),
+  ('Home Office',        'Expenses'),
+  ('Charity',            'Expenses'),
+  ('Gifts',              'Expenses'),
+  ('Margin',             'Expenses'),
+  ('Taxes',              'Expenses'),
+  ('Emergency Fund',     'Savings'),
+  ('Retirement Account', 'Savings'),
+  ('Brokerage Account',  'Savings'),
+  ('Crypto',             'Savings'),
+  ('Sinking Fund',       'Savings'),
+  ('Physical Emergency', 'Savings');
 
 WITH demo AS (
   INSERT INTO users (username, email, first_name, last_name)
@@ -18,7 +45,7 @@ SELECT
   demo.id,
   v.date,
   v.type::transaction_type,
-  v.category::transaction_category,
+  v.category,
   v.amount,
   v.tags,
   v.details,
