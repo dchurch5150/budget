@@ -2,7 +2,7 @@ import { SummaryCards } from '@/components/SummaryCards';
 import { TransactionsTable } from '@/components/TransactionsTable';
 import { getDistinctTagsForUser, getTransactionsForUser } from '@/lib/transactions';
 import { computeRunningBalance } from '@/lib/types';
-import { createTransactionAction } from './actions';
+import { createTransactionAction, deleteTransactionAction } from './actions';
 import styles from './page.module.css';
 
 const CURRENT_USER_ID = 1;
@@ -30,6 +30,7 @@ export default async function DashboardPage() {
         rows={rows}
         existingTags={existingTags}
         onCreate={createTransactionAction}
+        onDelete={deleteTransactionAction}
       />
     </div>
   );

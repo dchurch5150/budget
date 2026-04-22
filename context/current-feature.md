@@ -1,18 +1,23 @@
-# Current Feature
-
-<!-- Feature Name -->
+# Current Feature: UI Delete Transaction
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Add a delete button (red X) at the end of each transaction row on the dashboard
+- Button only appears on row hover
+- Clicking the button opens a confirmation modal before deletion
+- Confirming deletion removes the transaction from the database and refreshes the dashboard
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Spec: context/features/ui-delete-transaction-spec.md
+- Delete must hit Postgres (transactions table) — not just client state
+- Scope to current dashboard user (id 1 placeholder until auth)
+- Keep server action pattern consistent with createTransactionAction
+- Confirmation modal should prevent accidental deletion
 
 ## History
 

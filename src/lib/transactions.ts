@@ -75,6 +75,14 @@ export async function insertTransaction(input: InsertTransactionInput): Promise<
   );
 }
 
+export async function deleteTransaction(id: string, userId: number): Promise<boolean> {
+  const result = await getPool().query(
+    `DELETE FROM transactions WHERE id = $1 AND "user" = $2`,
+    [id, userId],
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
 function formatDate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');

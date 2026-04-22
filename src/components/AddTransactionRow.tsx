@@ -268,10 +268,11 @@ export function AddTransactionRow({
             </div>
           </div>
         </td>
+        <td aria-hidden="true" />
       </tr>
       {error ? (
         <tr className={styles.errorRow}>
-          <td colSpan={8} className={styles.errorCell}>
+          <td colSpan={9} className={styles.errorCell}>
             {error}
           </td>
         </tr>
