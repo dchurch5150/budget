@@ -2,12 +2,15 @@
 
 import { useRef, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
-import { isTransactionType, type Category } from '@/lib/types';
-import type {
-  ImportRowError,
-  ImportTransactionRow,
-  ImportTransactionsResult,
-} from '@/app/dashboard/actions';
+import {
+  isTransactionType,
+  TRANSACTION_TYPES,
+  type Category,
+  type ImportRowError,
+  type ImportTransactionRow,
+} from '@/lib/types';
+import type { ImportTransactionsResult } from '@/app/dashboard/actions';
+import { ADAPTERS, getAdapter } from '@/lib/importers';
 import styles from './MassImportButton.module.css';
 import tableStyles from './TransactionsTable.module.css';
 
@@ -19,16 +22,26 @@ interface MassImportButtonProps {
   }) => Promise<ImportTransactionsResult>;
 }
 
+interface UnmatchedGroup {
+  description: string;
+  rowNumbers: number[];
+  type: string;
+  category: string;
+}
+
 interface ParsePreview {
   fileName: string;
   rows: ImportTransactionRow[];
   parseErrors: ImportRowError[];
   unknownCategories: Array<{ name: string; type: string }>;
+  matchedCount: number;
 }
 
 export function MassImportButton({ categories, onImport }: MassImportButtonProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedAdapterId, setSelectedAdapterId] = useState('generic');
   const [preview, setPreview] = useState<ParsePreview | null>(null);
+  const [unmatchedGroups, setUnmatchedGroups] = useState<UnmatchedGroup[]>([]);
   const [result, setResult] = useState<{
     fileName: string;
     importedCount: number;
@@ -57,98 +70,92 @@ export function MassImportButton({ categories, onImport }: MassImportButtonProps
       return;
     }
 
-    const grid = parseCsv(text);
-    if (grid.length === 0) {
-      setError('CSV is empty.');
-      return;
-    }
-
-    const dataStart = looksLikeHeader(grid[0]) ? 1 : 0;
-    const dataRows = grid.slice(dataStart);
-    if (dataRows.length === 0) {
-      setError('CSV has no data rows.');
-      return;
-    }
-
-    const parseErrors: ImportRowError[] = [];
-    const rows: ImportTransactionRow[] = [];
-    for (let i = 0; i < dataRows.length; i++) {
-      const cells = dataRows[i];
-      const rowNumber = dataStart + i + 1;
-      if (cells.every((c) => c.trim() === '')) continue;
-      if (cells.length < 7) {
-        parseErrors.push({
-          rowNumber,
-          date: cells[0] ?? '',
-          category: cells[2] ?? '',
-          amount: 0,
-          error: `Row has ${cells.length} column(s); expected 7 (Date, Type, Category, Amount, Tags, Details, Source).`,
-        });
-        continue;
-      }
-      const [dateRaw, typeRaw, categoryRaw, amountRaw, tagsRaw, detailsRaw, sourceRaw] = cells;
-      const tags = tagsRaw
-        .split(';')
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0);
-      const amountNum = Number(amountRaw.trim());
-      rows.push({
-        rowNumber,
-        date: dateRaw.trim(),
-        type: typeRaw.trim(),
-        category: categoryRaw.trim(),
-        amount: Number.isFinite(amountNum) ? amountNum : NaN,
-        tags,
-        details: detailsRaw.trim(),
-        source: sourceRaw.trim(),
-      });
-    }
+    const adapter = getAdapter(selectedAdapterId);
+    const { rows, errors: parseErrors } = adapter.parse(text);
 
     if (rows.length === 0 && parseErrors.length === 0) {
-      setError('CSV has no data rows.');
+      setError('CSV is empty or has no data rows.');
       return;
     }
 
+    // Group rows missing type or category by description for manual classification
+    const groupMap = new Map<string, UnmatchedGroup>();
+    for (const r of rows) {
+      if (r.type && r.category) continue;
+      const key = r.details || `row-${r.rowNumber}`;
+      if (!groupMap.has(key)) {
+        groupMap.set(key, { description: key, rowNumbers: [], type: '', category: '' });
+      }
+      groupMap.get(key)!.rowNumbers.push(r.rowNumber);
+    }
+
+    const matchedCount = rows.filter((r) => r.type && r.category).length;
+
+    // Unknown categories from already-matched rows
     const known = new Set(categories.map((c) => c.name));
     const unknownMap = new Map<string, string>();
     for (const r of rows) {
+      if (!r.type || !r.category) continue;
       if (!isTransactionType(r.type)) continue;
-      if (!r.category) continue;
       if (known.has(r.category)) continue;
       if (!unknownMap.has(r.category)) unknownMap.set(r.category, r.type);
     }
-    const unknownCategories = Array.from(unknownMap.entries()).map(([name, type]) => ({
-      name,
-      type,
-    }));
+    const unknownCategories = Array.from(unknownMap.entries()).map(([name, type]) => ({ name, type }));
 
-    setPreview({ fileName: file.name, rows, parseErrors, unknownCategories });
+    setUnmatchedGroups(Array.from(groupMap.values()));
+    setPreview({ fileName: file.name, rows, parseErrors, unknownCategories, matchedCount });
+  }
+
+  function handleGroupChange(description: string, field: 'type' | 'category', value: string) {
+    setUnmatchedGroups((prev) =>
+      prev.map((g) =>
+        g.description === description
+          ? { ...g, [field]: value, ...(field === 'type' ? { category: '' } : {}) }
+          : g,
+      ),
+    );
   }
 
   function cancelPreview() {
     if (isImporting) return;
     setPreview(null);
+    setUnmatchedGroups([]);
   }
 
   function confirmImport() {
     if (!preview) return;
     const current = preview;
+
+    // Apply group assignments back to rows
+    const groupMap = new Map(unmatchedGroups.map((g) => [g.description, g]));
+    const mergedRows = current.rows.map((r) => {
+      if (r.type && r.category) return r;
+      const g = groupMap.get(r.details || `row-${r.rowNumber}`);
+      if (!g) return r;
+      return { ...r, type: g.type, category: g.category };
+    });
+
+    // Recompute unknownCategories from the fully merged rows
+    const known = new Set(categories.map((c) => c.name));
+    const unknownMap = new Map<string, string>();
+    for (const r of mergedRows) {
+      if (!isTransactionType(r.type)) continue;
+      if (!r.category) continue;
+      if (known.has(r.category)) continue;
+      if (!unknownMap.has(r.category)) unknownMap.set(r.category, r.type);
+    }
+    const approvedCategories = Array.from(unknownMap.entries()).map(([name, type]) => ({ name, type }));
+
     setError(null);
     startTransition(async () => {
       try {
-        const r = await onImport({
-          rows: current.rows,
-          approvedCategories: current.unknownCategories,
-        });
+        const r = await onImport({ rows: mergedRows, approvedCategories });
         const merged = [...current.parseErrors, ...r.errors].sort(
           (a, b) => a.rowNumber - b.rowNumber,
         );
-        setResult({
-          fileName: current.fileName,
-          importedCount: r.importedCount,
-          errors: merged,
-        });
+        setResult({ fileName: current.fileName, importedCount: r.importedCount, errors: merged });
         setPreview(null);
+        setUnmatchedGroups([]);
       } catch {
         setError('Import failed. Please try again.');
       }
@@ -168,6 +175,19 @@ export function MassImportButton({ categories, onImport }: MassImportButtonProps
         className={styles.hiddenInput}
         onChange={handleFileChange}
       />
+      <select
+        className={styles.sourceSelect}
+        value={selectedAdapterId}
+        onChange={(e) => setSelectedAdapterId(e.target.value)}
+        disabled={isImporting}
+        aria-label="Import source"
+      >
+        {ADAPTERS.map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.name}
+          </option>
+        ))}
+      </select>
       <button
         type="button"
         className={styles.importButton}
@@ -181,7 +201,10 @@ export function MassImportButton({ categories, onImport }: MassImportButtonProps
         ? createPortal(
             <PreviewModal
               preview={preview}
+              unmatchedGroups={unmatchedGroups}
+              categories={categories}
               isImporting={isImporting}
+              onGroupChange={handleGroupChange}
               onCancel={cancelPreview}
               onConfirm={confirmImport}
             />,
@@ -197,12 +220,23 @@ export function MassImportButton({ categories, onImport }: MassImportButtonProps
 
 interface PreviewModalProps {
   preview: ParsePreview;
+  unmatchedGroups: UnmatchedGroup[];
+  categories: Category[];
   isImporting: boolean;
+  onGroupChange: (description: string, field: 'type' | 'category', value: string) => void;
   onCancel: () => void;
   onConfirm: () => void;
 }
 
-function PreviewModal({ preview, isImporting, onCancel, onConfirm }: PreviewModalProps) {
+function PreviewModal({
+  preview,
+  unmatchedGroups,
+  categories,
+  isImporting,
+  onGroupChange,
+  onCancel,
+  onConfirm,
+}: PreviewModalProps) {
   const totalRows = preview.rows.length + preview.parseErrors.length;
   return (
     <div
@@ -221,6 +255,14 @@ function PreviewModal({ preview, isImporting, onCancel, onConfirm }: PreviewModa
         <p className={tableStyles.modalBody}>
           Found <strong>{totalRows}</strong> data row{totalRows === 1 ? '' : 's'} in the file.
         </p>
+
+        {preview.matchedCount > 0 && unmatchedGroups.length > 0 ? (
+          <p className={styles.matchedSummary}>
+            {preview.matchedCount} row{preview.matchedCount === 1 ? '' : 's'} auto-classified by
+            rules.
+          </p>
+        ) : null}
+
         {preview.parseErrors.length > 0 ? (
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>
@@ -238,6 +280,59 @@ function PreviewModal({ preview, isImporting, onCancel, onConfirm }: PreviewModa
             </ul>
           </div>
         ) : null}
+
+        {unmatchedGroups.length > 0 ? (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>
+              {unmatchedGroups.length} description{unmatchedGroups.length === 1 ? '' : 's'} need
+              manual classification
+            </h3>
+            <p className={styles.hint}>
+              Rows left unclassified will be skipped on import.
+            </p>
+            <div className={styles.unmatchedList}>
+              {unmatchedGroups.map((g) => {
+                const filteredCategories = categories.filter((c) => c.type === g.type);
+                return (
+                  <div key={g.description} className={styles.unmatchedRow}>
+                    <span className={styles.unmatchedDesc} title={g.description}>
+                      {g.description}
+                    </span>
+                    <span className={styles.unmatchedCount}>×{g.rowNumbers.length}</span>
+                    <select
+                      className={styles.unmatchedSelect}
+                      value={g.type}
+                      onChange={(e) => onGroupChange(g.description, 'type', e.target.value)}
+                      aria-label="Type"
+                    >
+                      <option value="">Type…</option>
+                      {TRANSACTION_TYPES.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      className={styles.unmatchedSelect}
+                      value={g.category}
+                      onChange={(e) => onGroupChange(g.description, 'category', e.target.value)}
+                      disabled={!g.type}
+                      aria-label="Category"
+                    >
+                      <option value="">Category…</option>
+                      {filteredCategories.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
         {preview.unknownCategories.length > 0 ? (
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>
@@ -251,11 +346,10 @@ function PreviewModal({ preview, isImporting, onCancel, onConfirm }: PreviewModa
                 </li>
               ))}
             </ul>
-            <p className={styles.hint}>
-              Cancel to abort the import if any of these are wrong.
-            </p>
+            <p className={styles.hint}>Cancel to abort the import if any of these are wrong.</p>
           </div>
         ) : null}
+
         <div className={tableStyles.modalActions}>
           <button
             type="button"
@@ -337,52 +431,4 @@ function ResultModal({ result, onClose }: ResultModalProps) {
       </div>
     </div>
   );
-}
-
-function looksLikeHeader(cells: string[]): boolean {
-  const first = cells[0]?.trim() ?? '';
-  return !/^\d{4}-\d{2}-\d{2}$/.test(first);
-}
-
-function parseCsv(text: string): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = '';
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (text[i + 1] === '"') {
-          field += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        field += ch;
-      }
-      continue;
-    }
-    if (ch === '"') {
-      inQuotes = true;
-    } else if (ch === ',') {
-      row.push(field);
-      field = '';
-    } else if (ch === '\n') {
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = '';
-    } else if (ch === '\r') {
-      // handled by '\n'
-    } else {
-      field += ch;
-    }
-  }
-  if (field.length > 0 || row.length > 0) {
-    row.push(field);
-    rows.push(row);
-  }
-  return rows;
 }

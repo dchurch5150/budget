@@ -1,16 +1,26 @@
-# Current Feature
+# Current Feature: Account Activity Importers
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Add a **source adapter layer** (`src/lib/importers/`) with one module per institution that normalizes that bank's CSV columns, date format, and sign convention into the existing `ImportTransactionRow` shape
+- Implement adapters for **Wells Fargo** and **Fidelity** to start, plus keep the existing **generic** (7-column) format
+- Add a **source selector** to the Mass Import UI (dropdown or auto-detect from filename/headers) so the correct adapter is applied
+- Add a **keyword rule engine** (`src/lib/importers/rules.ts`) that maps description patterns to Type + Category suggestions, configured per source
+- Show **editable Type/Category fields** in the import preview modal for rows that are unmatched or where the user wants to override a suggestion
+- Improve **duplicate detection** by incorporating a sequence suffix or bank-provided transaction ID to handle overlapping date-range re-exports
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Wells Fargo CSV columns: `Date, Amount, Running Balance, _, Description` (no header in some exports; debits are negative)
+- Fidelity CSV columns vary by account type (brokerage vs cash management); focus on the activity download format: `Run Date, Action, Symbol, Description, Amount`
+- Keyword rules are defined as `{ pattern: RegExp, type: TransactionType, category: string }[]` per source and live in a config file — not in the database — so they're easy to edit without migrations
+- The existing 7-column generic format and its parse logic in `MassImportButton.tsx` should be refactored into `src/lib/importers/generic.ts` to keep the component thin
+- Preview modal editable fields: only Type and Category need to be editable (Date/Amount/Details come from the file); unknown categories still show the existing approval flow
+- Duplicate ID: current scheme is `date-source-amount-cents`; add a per-(date,source,amount) counter suffix (e.g. `-1`, `-2`) when multiple rows would produce the same base ID
 
 ## History
 

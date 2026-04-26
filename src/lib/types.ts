@@ -37,6 +37,25 @@ export function computeRunningBalance(
   });
 }
 
+export interface ImportTransactionRow {
+  rowNumber: number;
+  date: string;
+  type: string;
+  category: string;
+  amount: number;
+  tags: string[];
+  details: string;
+  source: string;
+}
+
+export interface ImportRowError {
+  rowNumber: number;
+  date: string;
+  category: string;
+  amount: number;
+  error: string;
+}
+
 // Deterministic id per spec: `date-source-amount` concatenated with
 // no spaces or punctuation. Strips anything non-alphanumeric from each part.
 export function computeTransactionId(

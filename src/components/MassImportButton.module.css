@@ -32,7 +32,7 @@
 }
 
 .modalWide {
-  max-width: 560px;
+  max-width: 700px;
 }
 
 .section {
@@ -91,4 +91,74 @@
   display: block;
   color: #f87171;
   font-size: 12px;
+}
+
+.sourceSelect {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sourceSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.matchedSummary {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.unmatchedList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.unmatchedRow {
+  display: grid;
+  grid-template-columns: 1fr auto 116px 160px;
+  align-items: center;
+  gap: 6px;
+}
+
+.unmatchedDesc {
+  font-size: 12px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unmatchedCount {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.unmatchedSelect {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.unmatchedSelect:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
