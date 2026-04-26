@@ -1,16 +1,24 @@
-# Current Feature
+# Current Feature: Mass Import
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Add a "Mass Import" button on the dashboard that accepts a CSV file of transactions
+- Parse CSV rows in column order: Date, Type, Category, Amount, Tags, Details, Source
+- Insert each row as a transaction for the current user, reusing existing validation/id rules from createTransactionAction
+- Surface per-row errors (invalid Type, unknown Category for the Type, bad Amount/Date, duplicate id, etc.) without aborting the whole import
+- Revalidate /dashboard after a successful import so new rows appear immediately
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Spec: context/features/mass-import-spec.md
+- Column order is fixed; tags column will use semicolon for delimiter
+- Categories must already exist for the given Type, or be auto-created consistent with the single-add flow - for any unknown category found, have a modal confirm if the user wants to create category or cancel import.
+- Source is required (used in deterministic id alongside date+amount)
+- Should respect the same user scoping as the rest of the dashboard (user id 1 placeholder until auth)
 
 ## History
 
