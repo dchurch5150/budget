@@ -1,26 +1,16 @@
-# Current Feature: Account Activity Importers
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add a **source adapter layer** (`src/lib/importers/`) with one module per institution that normalizes that bank's CSV columns, date format, and sign convention into the existing `ImportTransactionRow` shape
-- Implement adapters for **Wells Fargo** and **Fidelity** to start, plus keep the existing **generic** (7-column) format
-- Add a **source selector** to the Mass Import UI (dropdown or auto-detect from filename/headers) so the correct adapter is applied
-- Add a **keyword rule engine** (`src/lib/importers/rules.ts`) that maps description patterns to Type + Category suggestions, configured per source
-- Show **editable Type/Category fields** in the import preview modal for rows that are unmatched or where the user wants to override a suggestion
-- Improve **duplicate detection** by incorporating a sequence suffix or bank-provided transaction ID to handle overlapping date-range re-exports
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Wells Fargo CSV columns: `Date, Amount, Running Balance, _, Description` (no header in some exports; debits are negative)
-- Fidelity CSV columns vary by account type (brokerage vs cash management); focus on the activity download format: `Run Date, Action, Symbol, Description, Amount`
-- Keyword rules are defined as `{ pattern: RegExp, type: TransactionType, category: string }[]` per source and live in a config file — not in the database — so they're easy to edit without migrations
-- The existing 7-column generic format and its parse logic in `MassImportButton.tsx` should be refactored into `src/lib/importers/generic.ts` to keep the component thin
-- Preview modal editable fields: only Type and Category need to be editable (Date/Amount/Details come from the file); unknown categories still show the existing approval flow
-- Duplicate ID: current scheme is `date-source-amount-cents`; add a per-(date,source,amount) counter suffix (e.g. `-1`, `-2`) when multiple rows would produce the same base ID
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -36,3 +26,4 @@ In Progress
 - UI Delete Transaction: added a hover-only red × button at the end of each dashboard row; clicking opens a confirmation modal showing the target date/category/amount and a Delete/Cancel pair; new deleteTransactionAction server action calls deleteTransaction(id, userId) scoped to the current user and revalidates /dashboard; AddTransactionRow extended with a trailing cell and error colSpan bumped to 9
 - Category DB: replaced transaction_category ENUM with a categories table (name PK, type FK to transaction_type) seeded with the 25 out-of-the-box categories; transactions.category is now TEXT with FK ON UPDATE CASCADE / ON DELETE RESTRICT; added src/lib/categories.ts with getCategories/getCategoryByName/insertCategory; dashboard fetches categories alongside transactions/tags and passes them to AddTransactionRow, where the Category input is disabled until a Type is picked, filtered to that Type's categories, and prompts a confirmation modal on blur when the typed name doesn't exist; createTransactionAction auto-creates new categories pinned to the submitted Type and rejects names that already exist under a different Type
 - Mass Import: added a "Mass Import" button on the dashboard toolbar that opens a CSV file picker; new MassImportButton client component parses CSV in fixed column order (Date, Type, Category, Amount, Tags, Details, Source) with semicolon-delimited tags, header auto-detection, quoted-field support, and a preview modal that lists any unknown (category, type) pairs for one-shot approval before submit; new importTransactionsAction server action pre-creates approved categories then per-row validates and inserts via insertTransaction, returning per-row errors (bad date, invalid Type, unknown/mismatched category, duplicate id) without aborting the batch; revalidates /dashboard once when at least one row inserts; result modal shows imported count plus a scrollable list of skipped rows with their row number, date, category, and reason
+- Account Activity Importers: added src/lib/importers/ adapter layer with SourceAdapter interface, parseCsv utility, and adapters for Generic (7-column), Wells Fargo (5-column signed-amount), and Fidelity (9-column, skips buy/sell events); keyword rule engine in rules.ts maps bank description patterns to Type + Category for ~50 common merchants/payees; Mass Import UI now has a source dropdown to select the adapter; preview modal groups unmatched rows by description with editable Type/Category selects before confirming; duplicate ID collision fix adds counter suffix (-2, -3) for same-day/source/amount rows in a batch; ImportTransactionRow and ImportRowError moved to src/lib/types.ts
