@@ -5,8 +5,11 @@ import type { Category, Transaction, TransactionType } from '@/lib/types';
 import type {
   CreateTransactionResult,
   DeleteTransactionResult,
+  ImportTransactionRow,
+  ImportTransactionsResult,
 } from '@/app/dashboard/actions';
 import { AddTransactionRow } from './AddTransactionRow';
+import { MassImportButton } from './MassImportButton';
 import styles from './TransactionsTable.module.css';
 
 export type TransactionWithBalance = Transaction & { balance: number };
@@ -47,6 +50,10 @@ interface TransactionsTableProps {
     source: string;
   }) => Promise<CreateTransactionResult>;
   onDelete: (id: string) => Promise<DeleteTransactionResult>;
+  onImport: (input: {
+    rows: ImportTransactionRow[];
+    approvedCategories: Array<{ name: string; type: string }>;
+  }) => Promise<ImportTransactionsResult>;
 }
 
 export function TransactionsTable({
@@ -55,6 +62,7 @@ export function TransactionsTable({
   categories,
   onCreate,
   onDelete,
+  onImport,
 }: TransactionsTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -107,6 +115,7 @@ export function TransactionsTable({
   return (
     <div className={styles.wrapper}>
       <div className={styles.toolbar}>
+        <MassImportButton categories={categories} onImport={onImport} />
         <button
           type="button"
           className={styles.addButton}

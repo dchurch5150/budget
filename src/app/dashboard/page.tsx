@@ -3,7 +3,11 @@ import { TransactionsTable } from '@/components/TransactionsTable';
 import { getCategories } from '@/lib/categories';
 import { getDistinctTagsForUser, getTransactionsForUser } from '@/lib/transactions';
 import { computeRunningBalance } from '@/lib/types';
-import { createTransactionAction, deleteTransactionAction } from './actions';
+import {
+  createTransactionAction,
+  deleteTransactionAction,
+  importTransactionsAction,
+} from './actions';
 import styles from './page.module.css';
 
 const CURRENT_USER_ID = 1;
@@ -34,6 +38,7 @@ export default async function DashboardPage() {
         categories={categories}
         onCreate={createTransactionAction}
         onDelete={deleteTransactionAction}
+        onImport={importTransactionsAction}
       />
     </div>
   );
